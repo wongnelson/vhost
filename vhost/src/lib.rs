@@ -105,13 +105,13 @@ impl std::fmt::Display for Error {
             Error::UsedAddress => write!(f, "invalid virtqueue used table address"),
             Error::AvailAddress => write!(f, "invalid virtqueue available table address"),
             Error::LogAddress => write!(f, "invalid virtqueue log address"),
-            Error::IOError(e) => write!(f, "IO error: {}", e),
+            Error::IOError(e) => write!(f, "IO error: {e}"),
             #[cfg(feature = "vhost-kern")]
-            Error::VhostOpen(e) => write!(f, "failure in opening vhost file: {}", e),
+            Error::VhostOpen(e) => write!(f, "failure in opening vhost file: {e}"),
             #[cfg(feature = "vhost-kern")]
-            Error::IoctlError(e) => write!(f, "failure in vhost ioctl: {}", e),
+            Error::IoctlError(e) => write!(f, "failure in vhost ioctl: {e}"),
             #[cfg(feature = "vhost-user")]
-            Error::VhostUserProtocol(e) => write!(f, "vhost-user: {}", e),
+            Error::VhostUserProtocol(e) => write!(f, "vhost-user: {e}"),
         }
     }
 }

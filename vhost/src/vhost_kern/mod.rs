@@ -27,7 +27,14 @@ use super::{
 };
 
 pub mod vhost_binding;
+// vhost_custom contains helper structs like __IncompleteArrayField and VhostMemory (wrapper).
+// It's used by vhost_binding (for __IncompleteArrayField) and internally by this module (VhostMemory).
+// It does not need to be pub itself.
+mod vhost_custom;
 use self::vhost_binding::*;
+// VhostMemory is defined in vhost_custom, and used here.
+use self::vhost_custom::VhostMemory;
+
 
 #[cfg(feature = "vhost-net")]
 pub mod net;

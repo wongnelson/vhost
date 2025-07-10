@@ -61,13 +61,13 @@ impl std::fmt::Display for VhostUserHandlerError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             VhostUserHandlerError::CreateVring(e) => {
-                write!(f, "failed to create vring: {}", e)
+                write!(f, "failed to create vring: {e}")
             }
             VhostUserHandlerError::CreateEpollHandler(e) => {
-                write!(f, "failed to create vring epoll handler: {}", e)
+                write!(f, "failed to create vring epoll handler: {e}")
             }
             VhostUserHandlerError::SpawnVringWorker(e) => {
-                write!(f, "failed spawning the vring worker: {}", e)
+                write!(f, "failed spawning the vring worker: {e}")
             }
             VhostUserHandlerError::MissingMemoryMapping => write!(f, "Missing memory mapping"),
         }
@@ -319,7 +319,7 @@ where
                 GuestAddress(region.guest_phys_addr),
             )
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
             mappings.push(AddrMapping {
                 #[cfg(feature = "postcopy")]
@@ -332,7 +332,7 @@ where
         }
 
         let mem = GuestMemoryMmap::from_regions(regions).map_err(|e| {
-            VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+            VhostUserError::ReqHandlerError(io::Error::other(e))
         })?;
 
         // Updating the inner GuestMemory object here will cause all our vrings to
@@ -342,7 +342,7 @@ where
         self.backend
             .update_memory(self.atomic_mem.clone())
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
         self.mappings = mappings;
 
@@ -378,13 +378,13 @@ where
 
         if !self.mappings.is_empty() {
             let desc_table = self.vmm_va_to_gpa(descriptor).map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
             let avail_ring = self.vmm_va_to_gpa(available).map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
             let used_ring = self.vmm_va_to_gpa(used).map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
             vring
                 .set_queue_info(desc_table, avail_ring, used_ring)
@@ -575,10 +575,7 @@ where
     fn get_shared_object(&mut self, uuid: VhostUserSharedMsg) -> VhostUserResult<File> {
         match self.backend.get_shared_object(uuid) {
             Ok(shared_file) => Ok(shared_file),
-            Err(e) => Err(VhostUserError::ReqHandlerError(io::Error::new(
-                io::ErrorKind::Other,
-                e,
-            ))),
+            Err(e) => Err(VhostUserError::ReqHandlerError(io::Error::other(e))),
         }
     }
 
@@ -615,7 +612,7 @@ where
                 GuestAddress(region.guest_phys_addr),
             )
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?,
         );
 
@@ -632,7 +629,7 @@ where
             .memory()
             .insert_region(guest_region)
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
 
         self.atomic_mem.lock().unwrap().replace(mem);
@@ -640,7 +637,7 @@ where
         self.backend
             .update_memory(self.atomic_mem.clone())
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
 
         self.mappings.push(addr_mapping);
@@ -654,7 +651,7 @@ where
             .memory()
             .remove_region(GuestAddress(region.guest_phys_addr), region.memory_size)
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
 
         self.atomic_mem.lock().unwrap().replace(mem);
@@ -662,7 +659,7 @@ where
         self.backend
             .update_memory(self.atomic_mem.clone())
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
 
         self.mappings
@@ -698,7 +695,7 @@ where
             .user_mode_only(false)
             .create()
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
 
         // We need to duplicate the uffd fd because we need both
@@ -737,7 +734,7 @@ where
                 mapping.size as usize,
             )
             .map_err(|e| {
-                VhostUserError::ReqHandlerError(io::Error::new(io::ErrorKind::Other, e))
+                VhostUserError::ReqHandlerError(io::Error::other(e))
             })?;
         }
 
@@ -799,7 +796,7 @@ impl<T: VhostUserBackend> Drop for VhostUserHandler<T> {
 
         for thread in self.worker_threads.drain(..) {
             if let Err(e) = thread.join() {
-                error!("Error in vring worker: {:?}", e);
+                error!("Error in vring worker: {e:?}");
             }
         }
     }
