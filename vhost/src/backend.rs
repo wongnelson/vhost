@@ -10,16 +10,20 @@
 //! Common traits and structs for vhost-kern and vhost-user backend drivers.
 
 use std::cell::RefCell;
-use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
+#[cfg(feature = "backend-mmap")]
+use std::os::unix::io::AsRawFd;
 use std::sync::RwLock;
 
+#[cfg(feature = "backend-mmap")]
 use vm_memory::{bitmap::Bitmap, Address, GuestMemoryRegion, GuestRegionMmap};
 use vmm_sys_util::eventfd::EventFd;
 
 #[cfg(feature = "vhost-user")]
 use super::vhost_user::message::{VhostUserMemoryRegion, VhostUserSingleMemoryRegion};
-use super::{Error, Result};
+#[cfg(feature = "backend-mmap")]
+use super::Error;
+use super::Result;
 
 /// Maximum number of memory regions supported.
 pub const VHOST_MAX_MEMORY_REGIONS: usize = 255;
@@ -88,6 +92,7 @@ pub struct VhostUserMemoryRegionInfo {
 
 impl VhostUserMemoryRegionInfo {
     /// Creates Self from GuestRegionMmap.
+    #[cfg(feature = "backend-mmap")]
     pub fn from_guest_region<B: Bitmap>(region: &GuestRegionMmap<B>) -> Result<Self> {
         let file_offset = region
             .file_offset()

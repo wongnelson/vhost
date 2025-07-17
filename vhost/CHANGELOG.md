@@ -4,6 +4,9 @@
 
 ### Added
 ### Changed
+- `backend-mmap` is now optional and automatically enabled when the `xen`
+  feature is selected. The `from_guest_region` helper remains available but
+  is compiled only with the `backend-mmap` feature.
 ### Deprecated
 ### Fixed
 - [[#304]](https://github.com/rust-vmm/vhost/pull/304) Fix building docs.
