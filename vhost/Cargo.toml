@@ -23,7 +23,8 @@ vhost-net = ["vhost-kern"]
 vhost-user = []
 vhost-user-frontend = ["vhost-user"]
 vhost-user-backend = ["vhost-user"]
-xen = ["vm-memory/xen"]
+xen = ["vm-memory/xen", "backend-mmap"]
+backend-mmap = ["vm-memory/backend-mmap"]
 postcopy = []
 
 [dependencies]
@@ -32,8 +33,9 @@ libc = "0.2.39"
 uuid = { version = "1.11.0", features=["v4", "fast-rng"] }
 
 vmm-sys-util = { workspace = true }
-vm-memory = { workspace = true, features=["backend-mmap"] }
+vm-memory = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3.2.0"
 serial_test = "3.0"
+vm-memory = { workspace = true, features=["backend-mmap"] }
